@@ -7,6 +7,7 @@ export type Message = {
 
 export type CardQueryResponse = {
     cards: Card[],
+    fallbackCards: Card[],
     missingCards: {
         name: string,
         productId: number,

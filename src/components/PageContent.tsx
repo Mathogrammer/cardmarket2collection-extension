@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
-import "./PageContent.css";
-import logo from "~/assets/logo.svg";
 import browser from "webextension-polyfill";
-import { Card } from "scryfall-sdk";
+import logo from "~/assets/logo.svg";
 import { CardQueryResponse, MESSAGE_QUERY_CARDS } from "~/messages";
 import { CardList } from "./CardList";
-
+import "./PageContent.css";
 
 
 function PageContent(props: { children: React.ReactNode }) {
@@ -57,7 +55,7 @@ function PageContent(props: { children: React.ReactNode }) {
     return (
         <div>
             <p>Cards retrieved:</p>
-            <CardList cards={response.cards} missingCards={response.missingCards} />
+            <CardList cards={response.cards} fallbackCards={response.fallbackCards} missingCards={response.missingCards} />
         </div>
     );
 }

@@ -7,7 +7,7 @@ const sharedManifest: Partial<chrome.runtime.ManifestBase> = {
     content_scripts: [
         {
             js: ["src/entries/contentScript/primary/main.tsx"],
-            matches: [cardmarketMatcher],
+            matches: [cardmarketMatcher, "file://*/*"],
         },
     ],
     icons: {
@@ -50,9 +50,12 @@ const ManifestV2: Partial<chrome.runtime.ManifestV2> = {
     page_action: {
         ...action,
         show_matches: [
-            cardmarketMatcher
+            cardmarketMatcher, "file://*/*"
         ]
     } as Manifest.WebExtensionManifestPageActionType,
+    browser_action: {
+        ...action,
+    },
     options_ui: {
         ...sharedManifest.options_ui,
         chrome_style: false,

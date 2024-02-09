@@ -11,8 +11,8 @@
     "build-v3": "cross-env MANIFEST_VERSION=3 vite build",
     "watch": "vite build --watch --mode development --minify false",
     "dev": "vite",
-    "serve:firefox": "web-ext run --start-url \"about:debugging#/runtime/this-firefox\"  --source-dir ./dist/",
-    "serve:chrome": "web-ext run -t chromium --start-url \"https://cardmarket.com/en/Magic/ShoppingCart\" --source-dir ./dist/",
+    "serve:firefox": "web-ext run --start-url \"file://C:/Users/alexandermarc/Documents/Mathogrammer/cardmarket2collection-extension/test/SamplePurchaseCardmarket.htm\"  --source-dir ./dist/",
+    "serve:chrome": "web-ext run -t chromium --start-url \"file://C:/Users/alexandermarc/Documents/Mathogrammer/cardmarket2collection-extension/test/SamplePurchaseCardmarket.htm\" --source-dir ./dist/",
     "build-serve-firefox": "yarpm run build-v2 && yarpm run serve:firefox"
   },
   "license": "MIT",

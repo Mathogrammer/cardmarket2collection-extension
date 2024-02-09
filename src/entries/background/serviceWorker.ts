@@ -1,5 +1,5 @@
-import "./main";
 import { cardMarketBase } from "~/cardmarket";
+import "./main";
 
 // Wrap in an onInstalled callback to avoid unnecessary work
 // every time the background script is run
@@ -16,13 +16,23 @@ chrome.runtime.onInstalled.addListener(() => {
             conditions: [
                 new chrome.declarativeContent.PageStateMatcher({
                     pageUrl: { hostContains: cardMarketBase },
-                })
+                }),
+
+            ],
+            actions: [new chrome.declarativeContent.ShowAction()],
+        };
+        const devShowActionRule = {
+            conditions: [
+                new chrome.declarativeContent.PageStateMatcher({
+                    pageUrl: { schemes: ["file"] },
+                }),
+
             ],
             actions: [new chrome.declarativeContent.ShowAction()],
         };
 
         // Finally, apply our new array of rules
-        const rules = [showActionRule];
+        const rules = [showActionRule, devShowActionRule];
         chrome.declarativeContent.onPageChanged.addRules(rules);
     });
 });

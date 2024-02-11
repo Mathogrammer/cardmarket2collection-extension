@@ -1,13 +1,18 @@
 import { Manifest } from "webextension-polyfill";
 import pkg from "../package.json";
 import { cardmarketMatcher } from "./cardmarket";
+import { archidektMatcher } from "./archidekt";
 
 
 const sharedManifest: Partial<chrome.runtime.ManifestBase> = {
     content_scripts: [
         {
-            js: ["src/entries/contentScript/primary/main.tsx"],
+            js: ["src/entries/contentScript/cardmarket/main.tsx"],
             matches: [cardmarketMatcher, "file://*/*"],
+        },
+        {
+            js: ["src/entries/contentScript/archidekt/main.tsx"],
+            matches: [archidektMatcher, "file://*/*"],
         },
     ],
     icons: {

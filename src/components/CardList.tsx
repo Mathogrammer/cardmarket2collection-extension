@@ -1,8 +1,9 @@
-import { FC } from 'react';
+import { FC, useCallback, useState } from 'react';
 import { Card } from 'scryfall-sdk';
 // import browser from "webextension-polyfill";
 import { CardItem } from './CardItem';
 import './Cards.css';
+import browser from 'webextension-polyfill';
 
 type MissingCard = {
     name: string,
@@ -13,19 +14,20 @@ type CardListProps = {
     cards: Card[],
     fallbackCards: Card[],
     missingCards: MissingCard[],
+    archidektCollectionId: string
 }
 
-// const importToArchidekt = useCallback((cards: Card[]) => {
-//     browser.tabs.create({ url: "https://www.archidekt.com/collection", active: true }).then((tab) => {
-//         console.log(tab);
-//     })
-// }, []);
+const importToArchidekt = (cards: Card[], archidektCollectionId: string) => {
+    browser.tabs.create({ url: `https://www.archidekt.com/collections/${archidektCollectionId}`, active: true }).then((tab) => {
+        console.log(tab);
+    })
+};
 
-export const CardList: FC<CardListProps> = ({ cards, fallbackCards, missingCards }) => {
-    // const [allCards, setAllCards] = useState([
-    //     ...cards,
-    //     ...fallbackCards,
-    // ]);
+export const CardList: FC<CardListProps> = ({ cards, fallbackCards, missingCards, archidektCollectionId }) => {
+    const [allCards, setAllCards] = useState([
+        ...cards,
+        ...fallbackCards,
+    ]);
 
     return (
         <div>
@@ -43,7 +45,7 @@ export const CardList: FC<CardListProps> = ({ cards, fallbackCards, missingCards
                     <li>{it.name}</li>
                 ))}
             </ul>
-            {/* <button onClick={() => importToArchidekt(allCards)}>Import to Archidekt</button> */}
+            <button onClick={() => importToArchidekt(allCards, archidektCollectionId)}>Import to Archidekt</button>
         </div>
     )
 }

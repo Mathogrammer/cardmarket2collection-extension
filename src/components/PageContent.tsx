@@ -4,6 +4,7 @@ import logo from "~/assets/logo.svg";
 import { CardQueryResponse, MESSAGE_QUERY_CARDS } from "~/messages";
 import { CardList } from "./CardList";
 import "./PageContent.css";
+import { ArchidektCollectionForm } from "./ArchidektCollectionForm";
 
 
 function PageContent(props: { children: React.ReactNode }) {
@@ -11,6 +12,7 @@ function PageContent(props: { children: React.ReactNode }) {
 
     const [isQuerying, setIsQuerying] = useState(false);
     const [response, setResponse] = useState<CardQueryResponse | undefined>();
+    const [collectionId, setCollectionId] = useState<string>("61004");
 
     const emptyResponse = useMemo(() => {
         if (response === undefined)
@@ -54,8 +56,9 @@ function PageContent(props: { children: React.ReactNode }) {
 
     return (
         <div>
+            <ArchidektCollectionForm {...{ collectionId, setCollectionId }} />
             <p>Cards retrieved:</p>
-            <CardList cards={response.cards} fallbackCards={response.fallbackCards} missingCards={response.missingCards} />
+            <CardList cards={response.cards} fallbackCards={response.fallbackCards} missingCards={response.missingCards} archidektCollectionId={collectionId} />
         </div>
     );
 }

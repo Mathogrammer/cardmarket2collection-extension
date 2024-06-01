@@ -3,16 +3,11 @@ import pkg from "../package.json";
 import { cardmarketMatcher } from "./cardmarket";
 import { archidektMatcher } from "./archidekt";
 
-
 const sharedManifest: Partial<chrome.runtime.ManifestBase> = {
     content_scripts: [
         {
             js: ["src/entries/contentScript/cardmarket/main.tsx"],
             matches: [cardmarketMatcher, "file://*/*"],
-        },
-        {
-            js: ["src/entries/contentScript/archidekt/main.tsx"],
-            matches: [archidektMatcher, "file://*/*"],
         },
     ],
     icons: {
@@ -31,7 +26,7 @@ const sharedManifest: Partial<chrome.runtime.ManifestBase> = {
         page: "src/entries/options/index.html",
         open_in_tab: true,
     },
-    permissions: ["activeTab"] as chrome.runtime.ManifestPermissions[],
+    permissions: ["activeTab", "cookies", archidektMatcher] as chrome.runtime.ManifestPermissions[],
 };
 
 const action = {
@@ -74,8 +69,9 @@ const ManifestV3: Partial<chrome.runtime.ManifestV3> = {
     action: action,
     background: {
         service_worker: "src/entries/background/serviceWorker.ts",
+        type: "module",
     },
-    host_permissions: [],
+    host_permissions: [archidektMatcher],
     permissions: [...sharedManifest.permissions, "declarativeContent"] as chrome.runtime.ManifestPermissions[],
 };
 

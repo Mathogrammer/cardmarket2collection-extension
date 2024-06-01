@@ -1,6 +1,6 @@
 {
   "name": "vite-web-extension",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "displayName": "Vite Web Extension",
   "author": "@samrum/vite-plugin-web-extension",
   "description": "A @samrum/vite-plugin-web-extension web extension",
@@ -30,6 +30,7 @@
     "yarpm": "^1.2.0"
   },
   "dependencies": {
+    "axios": "^1.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "scryfall-sdk": "^4.2.2",

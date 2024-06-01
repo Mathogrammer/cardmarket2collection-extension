@@ -1,4 +1,4 @@
-import { cardMarketBase } from "~/cardmarket";
+import { cardmarketBase } from "~/cardmarket";
 import "./main";
 
 // Wrap in an onInstalled callback to avoid unnecessary work
@@ -8,14 +8,13 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.action.disable();
     console.log("Action disabled");
 
-
     // Clear all rules to ensure only our expected rules are set
     chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
         // Declare a rule to enable the action on example.com pages
         const showActionRule = {
             conditions: [
                 new chrome.declarativeContent.PageStateMatcher({
-                    pageUrl: { hostContains: cardMarketBase },
+                    pageUrl: { hostContains: cardmarketBase },
                 }),
 
             ],

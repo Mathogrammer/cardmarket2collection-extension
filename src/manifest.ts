@@ -3,16 +3,11 @@ import pkg from "../package.json";
 import { cardmarketMatcher } from "./cardmarket";
 import { archidektMatcher } from "./archidekt";
 
-
-const sharedManifest: Partial<chrome.runtime.ManifestBase> = {
+const sharedManifest: Partial<Manifest.WebExtensionManifest> = {
     content_scripts: [
         {
             js: ["src/entries/contentScript/cardmarket/main.tsx"],
             matches: [cardmarketMatcher, "file://*/*"],
-        },
-        {
-            js: ["src/entries/contentScript/archidekt/main.tsx"],
-            matches: [archidektMatcher, "file://*/*"],
         },
     ],
     icons: {
@@ -27,11 +22,7 @@ const sharedManifest: Partial<chrome.runtime.ManifestBase> = {
         256: "icons/256.png",
         512: "icons/512.png",
     },
-    options_ui: {
-        page: "src/entries/options/index.html",
-        open_in_tab: true,
-    },
-    permissions: ["activeTab"] as chrome.runtime.ManifestPermissions[],
+    permissions: ["activeTab", "cookies", archidektMatcher],
 };
 
 const action = {
@@ -45,8 +36,8 @@ const action = {
     default_title: "Archidekt Import"
 };
 
-const ManifestV2: Partial<chrome.runtime.ManifestV2> = {
-    ...sharedManifest,
+const ManifestV2: Partial<Manifest.WebExtensionManifest> = {
+    ...(sharedManifest as Manifest.WebExtensionManifest),
     manifest_version: 2,
     background: {
         scripts: ["src/entries/background/script.ts"],
@@ -61,22 +52,24 @@ const ManifestV2: Partial<chrome.runtime.ManifestV2> = {
     browser_action: {
         ...action,
     },
-    options_ui: {
-        ...sharedManifest.options_ui,
-        chrome_style: false,
+    browser_specific_settings: {
+        gecko: {
+            id: "088a93a35b412daaf91f9c44d5bb3a50ae92ce39@non-signed-addon"
+        }
     },
-    permissions: [...sharedManifest.permissions, "tabs"] as chrome.runtime.ManifestPermissions[],
+    permissions: [...sharedManifest.permissions ?? [], "tabs"] as chrome.runtime.ManifestPermissions[],
 };
 
 const ManifestV3: Partial<chrome.runtime.ManifestV3> = {
-    ...sharedManifest,
+    ...(sharedManifest as chrome.runtime.ManifestV3),
     manifest_version: 3,
     action: action,
     background: {
         service_worker: "src/entries/background/serviceWorker.ts",
+        type: "module",
     },
-    host_permissions: [],
-    permissions: [...sharedManifest.permissions, "declarativeContent"] as chrome.runtime.ManifestPermissions[],
+    host_permissions: [archidektMatcher],
+    permissions: [...sharedManifest.permissions ?? [], "declarativeContent"] as chrome.runtime.ManifestPermissions[],
 };
 
 export function getManifest(manifestVersion: number): chrome.runtime.ManifestV2 | chrome.runtime.ManifestV3 {

@@ -1,23 +1,18 @@
 import React, { useCallback, useMemo, useState } from "react";
 import browser from "webextension-polyfill";
-import logo from "~/assets/logo.svg";
-import { CardQueryResponse, MESSAGE_QUERY_CARDS } from "~/messages";
-import { CardList } from "./CardList";
+import { GetCardsResponse, MESSAGE_GET_CARDS } from "~/messages";
 import "./PageContent.css";
-import { ArchidektCollectionForm } from "./ArchidektCollectionForm";
 
 
 function PageContent(props: { children: React.ReactNode }) {
-    const imageUrl = new URL(logo, import.meta.url).href;
 
     const [isQuerying, setIsQuerying] = useState(false);
-    const [response, setResponse] = useState<CardQueryResponse | undefined>();
-    const [collectionId, setCollectionId] = useState<string>("61004");
+    const [response, setResponse] = useState<GetCardsResponse | undefined>();
 
     const emptyResponse = useMemo(() => {
         if (response === undefined)
             return false;
-        return response.cards.length === 0 && response.missingCards.length === 0;
+        return response.response.length === 0;
     }, [response]);
 
     // TODO: Throttle requests
@@ -25,8 +20,11 @@ function PageContent(props: { children: React.ReactNode }) {
         browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
             setIsQuerying(true);
             console.log('Sending query message');
-            browser.tabs.sendMessage(tab.id!!, { type: MESSAGE_QUERY_CARDS }).then((response: CardQueryResponse) => {
+            browser.tabs.sendMessage(tab.id!!, { type: MESSAGE_GET_CARDS }).then((response: GetCardsResponse) => {
                 console.log("received response", response);
+
+                browser.runtime.sendMessage({ type: "FIREFOX_ROUNDABOUT_MESSAGE", data: response });
+
                 setResponse(response);
                 setIsQuerying(false);
             });
@@ -44,7 +42,6 @@ function PageContent(props: { children: React.ReactNode }) {
     if (response === undefined || emptyResponse) {
         return (
             <div>
-                <img src={imageUrl} height="45" alt="" />
                 <h1>{props.children}</h1>
                 {emptyResponse && <p>No cards found.</p>}
                 <button type="button" onClick={retrieveCards}>
@@ -56,9 +53,7 @@ function PageContent(props: { children: React.ReactNode }) {
 
     return (
         <div>
-            <ArchidektCollectionForm {...{ collectionId, setCollectionId }} />
-            <p>Cards retrieved:</p>
-            <CardList cards={response.cards} fallbackCards={response.fallbackCards} missingCards={response.missingCards} archidektCollectionId={collectionId} />
+            Loading response page...
         </div>
     );
 }

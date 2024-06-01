@@ -221,3 +221,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,node,react,visualstudiocode
+
+src/debug.ts
+# Built & Compressed Extension files
+*.xpi

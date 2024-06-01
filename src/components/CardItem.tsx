@@ -1,14 +1,14 @@
 import { FC } from 'react'
-import { Card } from 'scryfall-sdk'
+import { CardmarketLanguageToLanguageCode, ResultFound } from '~/cardmarket'
 
 type CardItemProps = {
-    card: Card
+    result: ResultFound
 }
 
-export const CardItem: FC<CardItemProps> = ({ card }) => {
+export const CardItem: FC<CardItemProps> = ({ result: { card, amount, isFoil, language, price } }) => {
     return (
         <li>
-            {card.name} ({card.set_name} #{card.collector_number})
+            [{amount},"{card.name}","{isFoil ? "Foil" : "Normal"}","{card.set_name}","{CardmarketLanguageToLanguageCode[language]}",{price}]
         </li>
     )
 }

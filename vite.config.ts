@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
       react(),
       webExtension({
         manifest: getManifest(Number(env.MANIFEST_VERSION)),
+        additionalInputs: {
+          html: ["src/result-page/index.html"],
+        }
       }),
     ],
     resolve: {

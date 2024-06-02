@@ -1,9 +1,9 @@
 {
-  "name": "vite-web-extension",
+  "name": "cardmarket2archidekt",
   "version": "0.1.0",
-  "displayName": "Vite Web Extension",
-  "author": "@samrum/vite-plugin-web-extension",
-  "description": "A @samrum/vite-plugin-web-extension web extension",
+  "displayName": "Cardmarket to Archidekt Import Extension",
+  "author": "Mathogrammer",
+  "description": "A web extension to import bought Cardmarket cards into your Archidekt Collection.",
   "type": "module",
   "scripts": {
     "build": "vite build",

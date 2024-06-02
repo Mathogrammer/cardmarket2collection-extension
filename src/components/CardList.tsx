@@ -1,10 +1,10 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import browser from "webextension-polyfill";
+import { ArchidektCredentials } from '~/archidekt';
+import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardFromProductId } from '~/cardmarket';
+import { CardTableData, IMPORT_CARDS_TO_ARCHIDEKT, IMPORT_SUCCESS, ImportCardToArchidektMessage, Message } from '~/messages';
 import { CardItem } from './CardItem';
 import './Cards.css';
-import { CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardFromProductId } from '~/cardmarket';
-import { CardTableData, IMPORT_CARDS_TO_ARCHIDEKT, IMPORT_SUCCESS, ImportCardToArchidektMessage, MESSAGE_QUERY_CARDS, Message } from '~/messages';
-import { ArchidektCredentials } from '~/archidekt';
 
 export type CardListProps = {
     cardTableData: CardTableData[],
@@ -103,7 +103,24 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
         )
     }, [isImporting, allCards, archidektCredentials, handleImport]);
 
-    if (cards === undefined || fallbackCards === undefined || missingCards === undefined) {
+    const handleCsvExport = useCallback((cards: ResultFound[]) => {
+        return () => {
+            const csvContent = cards.map(it => (
+                `${it.amount},"${it.card.id}","${it.isFoil ? "Foil" : "Normal"}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"`
+            )).join("\n");
+            const csv = `Amount,ScryfallId,Foil,Language,Price,Condition\n${csvContent}\n`
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cards.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    }, []);
+
+
+    if (cards === undefined || fallbackCards === undefined || missingCards === undefined || allCards === undefined) {
         return (
             <div>
                 Loading...
@@ -125,10 +142,13 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
             {/* <ul> */}
             <div className='missing-cards'>
                 {missingCards.map(it => (
-                    `[${it.productId},${it.amount},"${it.name}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price}]\n`
+                    `[${it.productId},${it.amount},"${it.name}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"]\n`
                 ))}
             </div>
             {importButton}
+            <button onClick={handleCsvExport(allCards)}>
+                Als CSV exportieren
+            </button>
         </div>
     )
 }

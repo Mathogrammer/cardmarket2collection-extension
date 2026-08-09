@@ -33,10 +33,12 @@
         "yarpm": "1.2.0"
     },
     "dependencies": {
+        "@tailwindcss/vite": "^4.3.3",
         "axios": "1.19.0",
         "react": "19.2.8",
         "react-dom": "19.2.8",
         "scryfall-sdk": "5.0.3",
+        "tailwindcss": "^4.3.3",
         "webextension-polyfill": "0.12.0"
     }
 }

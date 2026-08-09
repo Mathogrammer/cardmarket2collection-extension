@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import webExtension from "@samrum/vite-plugin-web-extension";
 import path from "path";
 import { getManifest } from "./src/manifest.ts";
+import tailwindcss from '@tailwindcss/vite';
 import { emitResultPageHtml } from "./src/emitResultPageHtml.ts";
 
 // https://vitejs.dev/config/
@@ -26,6 +27,7 @@ export default defineConfig(({ mode }) => {
           ],
         }
       }) as Plugin,
+      tailwindcss(),
       emitResultPageHtml(),
     ],
     resolve: {

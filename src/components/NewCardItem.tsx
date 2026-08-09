@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo, useState } from 'react'
-import { CardmarketLanguageToLanguageCode, Result, ResultTypes, getCardFromProductId } from '~/cardmarket'
-import { CardTableData } from '~/messages'
+import { CardmarketLanguageToLanguageCode, Result, ResultTypes, getCardFromProductId } from '@/cardmarket'
+import { CardTableData } from '@/messages'
 
 type CardItemProps = {
     result: CardTableData

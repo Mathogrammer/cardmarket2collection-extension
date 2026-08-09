@@ -1,6 +1,6 @@
 import browser, { Runtime } from "webextension-polyfill";
-import { importToArchidekt } from "~/archidekt";
-import { FIREFOX_ROUNDABOUT_MESSAGE, IMPORT_CARDS_TO_ARCHIDEKT, MESSAGE_QUERY_CARDS, Message, RESULT_PAGE_READY } from "~/messages";
+import { importToArchidekt } from "@/archidekt";
+import { ROUNDABOUT_MESSAGE, IMPORT_CARDS_TO_ARCHIDEKT, MESSAGE_QUERY_CARDS, Message, RESULT_PAGE_READY, makeMessageListener } from "@/messages";
 import axios from "axios";
 
 browser.runtime.onInstalled.addListener(() => {
@@ -13,7 +13,7 @@ browser.runtime.onMessage.addListener((message: Message) => {
         const { cards, archidektCredentials } = message;
         importToArchidekt(axios, browser, cards, archidektCredentials);
     }
-    else if (message.type === FIREFOX_ROUNDABOUT_MESSAGE) {
+    else if (message.type === ROUNDABOUT_MESSAGE) {
         const response = message.data;
         browser.tabs.create({ url: browser.runtime.getURL("src/result-page/index.html"), active: true }).then(() => {
             const listener = (message: Message, sender: Runtime.MessageSender) => {

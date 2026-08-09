@@ -1,6 +1,6 @@
 import React from 'react';
 import { NewCardItem } from './NewCardItem';
-import { CardTableData } from '~/messages';
+import { CardTableData } from '@/messages';
 
 interface NewCardListProps {
     cards: CardTableData[];

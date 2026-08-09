@@ -1,21 +1,22 @@
 import { useEffect, useState } from "react";
 import browser from "webextension-polyfill";
-import { ArchidektForm } from "~/components/ArchidektForm";
-import { CardList } from "~/components/CardList";
-import { GetCardsResponse, MESSAGE_QUERY_CARDS, Message, RESULT_PAGE_READY } from "~/messages";
+import { ArchidektForm } from "@/components/ArchidektForm";
+import { CardList } from "@/components/CardList";
+import { GetCardsResponse, makeMessageListener, Message, MESSAGE_QUERY_CARDS, RESULT_PAGE_READY } from "@/messages";
 import "./App.css";
+import { debugCredentials } from "@/debug";
 
 
 function App() {
     const [response, setResponse] = useState<GetCardsResponse>();
-    const [username, setUsername] = useState<string>();
-    const [password, setPassword] = useState<string>();
+    const [username, setUsername] = useState<string>(debugCredentials.archidekt.email);
+    const [password, setPassword] = useState<string>(debugCredentials.archidekt.password);
 
     useEffect(() => {
         const listener = (message: Message) => {
             if (message.type === MESSAGE_QUERY_CARDS) {
                 console.log("Received query message", message);
-                setResponse(message.data);
+                setResponse(message.data as GetCardsResponse);
             }
         }
         console.log("Setup listener");

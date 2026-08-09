@@ -1,4 +1,4 @@
-import { cardmarketBase } from "~/cardmarket";
+import { cardmarketBase } from "@/cardmarket";
 import "./main";
 
 // Wrap in an onInstalled callback to avoid unnecessary work

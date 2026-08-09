@@ -1,0 +1,10 @@
+allowBuilds:
+  core-js: true
+  dtrace-provider: false
+  esbuild: true
+  spawn-sync: true
+minimumReleaseAgeExclude:
+  - content-security-policy-parser@0.6.0
+  - image-size@2.0.3
+overrides:
+  content-security-policy-parser@<0.6.0: ^0.6.0

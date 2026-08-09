@@ -1,5 +1,5 @@
 import { Card, Cards } from "scryfall-sdk";
-import { CardTableData } from "./messages";
+import { CardTableData } from "./messages.ts";
 
 export const cardmarketBase = "cardmarket.com";
 export const cardmarketMatcher = `*://*.${cardmarketBase}/*`;

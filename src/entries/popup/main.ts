@@ -1,7 +1,7 @@
 import "../enableDevHmr";
 import browser from "webextension-polyfill";
 import "./index.css";
-import { GetCardsResponse, MESSAGE_GET_CARDS } from "~/messages";
+import { GetCardsResponse, MESSAGE_GET_CARDS } from "@/messages";
 
 const app = document.getElementById("app");
 const queryButton = `<button id="query-button" type="button">Query cards from page</button>`;
@@ -33,9 +33,9 @@ function retrieveCards() {
     setIsQuerying(true);
     browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
         console.log('Sending query message');
-        browser.tabs.sendMessage(tab.id!!, { type: MESSAGE_GET_CARDS }).then((response: GetCardsResponse) => {
+        browser.tabs.sendMessage(tab.id!!, { type: MESSAGE_GET_CARDS }).then((response: unknown) => {
             console.log("received response", response);
-            browser.runtime.sendMessage({ type: "FIREFOX_ROUNDABOUT_MESSAGE", data: response });
+            browser.runtime.sendMessage({ type: "ROUNDABOUT_MESSAGE", data: response as GetCardsResponse });
             setIsQuerying(false);
         });
     });

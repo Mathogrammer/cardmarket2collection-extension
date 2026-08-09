@@ -1,8 +1,9 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import webExtension from "@samrum/vite-plugin-web-extension";
 import path from "path";
-import { getManifest } from "./src/manifest";
+import { getManifest } from "./src/manifest.ts";
+import { emitResultPageHtml } from "./src/emitResultPageHtml.ts";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -17,13 +18,19 @@ export default defineConfig(({ mode }) => {
       webExtension({
         manifest: getManifest(Number(env.MANIFEST_VERSION)),
         additionalInputs: {
-          html: ["src/result-page/index.html"],
+          scripts: [
+            {
+              fileName: "src/result-page/main.tsx",
+              webAccessible: false,
+            },
+          ],
         }
-      }),
+      }) as Plugin,
+      emitResultPageHtml(),
     ],
     resolve: {
       alias: {
-        "~": path.resolve(__dirname, "./src"),
+        "@": path.resolve(import.meta.dirname, "./src"),
       },
     },
   };

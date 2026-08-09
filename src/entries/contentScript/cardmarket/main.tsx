@@ -1,11 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
-import { GetCardsResponse, CardTableData, MESSAGE_GET_CARDS, Message } from "~/messages";
+import { GetCardsResponse, CardTableData, MESSAGE_GET_CARDS, Message } from "@/messages";
 import "../../enableDevHmr";
 import renderContent from "../renderContent";
 import App from './App';
-import { CardmarketLanguage } from "~/cardmarket";
+import { CardmarketLanguage } from "@/cardmarket";
 
 browser.runtime.onMessage.addListener((data: Message | undefined, _sender, sendResponse: (response: any) => void) => {
     console.log("Receiving message", data);

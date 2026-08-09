@@ -1,5 +1,5 @@
 import { FC } from 'react'
-import { CardmarketLanguageToLanguageCode, ResultFound } from '~/cardmarket'
+import { CardmarketLanguageToLanguageCode, ResultFound } from '@/cardmarket'
 
 type CardItemProps = {
     result: ResultFound

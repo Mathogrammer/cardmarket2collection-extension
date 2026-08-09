@@ -1,7 +1,7 @@
 import { Manifest } from "webextension-polyfill";
-import pkg from "../package.json";
-import { cardmarketMatcher } from "./cardmarket";
-import { archidektMatcher } from "./archidekt";
+import pkg from "../package.json" with { type: 'json' };
+import { cardmarketMatcher } from "./cardmarket.ts";
+import { archidektMatcher } from "./archidekt.ts";
 
 const sharedManifest: Partial<Manifest.WebExtensionManifest> = {
     content_scripts: [
@@ -57,7 +57,7 @@ const ManifestV2: Partial<Manifest.WebExtensionManifest> = {
             id: "088a93a35b412daaf91f9c44d5bb3a50ae92ce39@non-signed-addon"
         }
     },
-    permissions: [...sharedManifest.permissions ?? [], "tabs"] as chrome.runtime.ManifestPermissions[],
+    permissions: [...sharedManifest.permissions ?? [], "tabs"] as chrome.runtime.ManifestPermission[],
 };
 
 const ManifestV3: Partial<chrome.runtime.ManifestV3> = {
@@ -69,10 +69,10 @@ const ManifestV3: Partial<chrome.runtime.ManifestV3> = {
         type: "module",
     },
     host_permissions: [archidektMatcher],
-    permissions: [...sharedManifest.permissions ?? [], "declarativeContent"] as chrome.runtime.ManifestPermissions[],
+    permissions: [...sharedManifest.permissions ?? [], "declarativeContent"] as chrome.runtime.ManifestPermission[],
 };
 
-export function getManifest(manifestVersion: number): chrome.runtime.ManifestV2 | chrome.runtime.ManifestV3 {
+export function getManifest(manifestVersion: number): Manifest.WebExtensionManifest | chrome.runtime.ManifestV3 {
     const manifest = {
         author: pkg.author,
         description: pkg.description,
@@ -84,7 +84,7 @@ export function getManifest(manifestVersion: number): chrome.runtime.ManifestV2 
         return {
             ...manifest,
             ...ManifestV2,
-        } as chrome.runtime.ManifestV2;
+        } as Manifest.WebExtensionManifest;
     }
 
     if (manifestVersion === 3) {

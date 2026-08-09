@@ -1,6 +1,6 @@
 
 import { AxiosStatic } from "axios";
-import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound } from "./cardmarket";
+import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound } from "./cardmarket.ts";
 import { Browser } from "webextension-polyfill";
 
 export const archidektBase = "archidekt.com"

@@ -1,8 +1,8 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import browser from "webextension-polyfill";
-import { ArchidektCredentials } from '~/archidekt';
-import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardFromProductId } from '~/cardmarket';
-import { CardTableData, IMPORT_CARDS_TO_ARCHIDEKT, IMPORT_SUCCESS, ImportCardToArchidektMessage, Message } from '~/messages';
+import { ArchidektCredentials } from '@/archidekt';
+import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardFromProductId } from '@/cardmarket';
+import { CardTableData, IMPORT_CARDS_TO_ARCHIDEKT, IMPORT_SUCCESS, ImportCardToArchidektMessage, makeMessageListener, Message } from '@/messages';
 import { CardItem } from './CardItem';
 import './Cards.css';
 

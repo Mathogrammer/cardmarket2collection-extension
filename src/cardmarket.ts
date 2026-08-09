@@ -118,7 +118,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
             console.warn("Could not find card with productId", productId, error);
             try {
                 if (cardTableData.name.toLowerCase().includes("token")) {
-                    const setName = cardTableData.expansionName.replace(": Extras", "").replace("Commander: ", "").replace(":", "") + " Tokens";
+                    let setName = cardTableData.expansionName.replace(": Extras", "").replace("Commander: ", "").replaceAll(":", "").replace(/ ?Tokens?/i, "") + " Tokens";
                     const set = await Sets.byName(setName, true);
                     let collectorNumbers = /(\d+)\/(\d+)/g.exec(cardTableData.collectorNumber)?.slice(1);
                     if (!collectorNumbers) {

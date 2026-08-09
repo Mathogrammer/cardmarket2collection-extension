@@ -1,7 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import browser from "webextension-polyfill";
 import { ArchidektCredentials } from '@/archidekt';
-import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardFromProductId } from '@/cardmarket';
+import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardsFromProductId } from '@/cardmarket';
 import { CardTableData, IMPORT_CARDS_TO_ARCHIDEKT, IMPORT_SUCCESS, ImportCardToArchidektMessage, makeMessageListener, Message } from '@/messages';
 import { CardItem } from './CardItem';
 import './Cards.css';
@@ -31,22 +31,24 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
         const missingCards: ResultMissing[] = [];
 
         for (const cardData of cardTableData) {
-            const data = await getCardFromProductId(cardData);
+            const data = await getCardsFromProductId(cardData);
             if (data === undefined) {
                 continue;
             }
-            switch (data.resultType) {
-                case ResultTypes.CARDMARKET_ID:
-                    cards.push(data);
-                    break;
-                case ResultTypes.FALLBACK:
-                    fallbackCards.push(data);
-                    break;
-                case ResultTypes.MISSING:
-                    missingCards.push(data);
-                    break;
-                default:
-                    continue;
+            for (const card of data) {
+                switch (card.resultType) {
+                    case ResultTypes.CARDMARKET_ID:
+                        cards.push(card);
+                        break;
+                    case ResultTypes.FALLBACK:
+                        fallbackCards.push(card);
+                        break;
+                    case ResultTypes.MISSING:
+                        missingCards.push(card);
+                        break;
+                    default:
+                        continue;
+                }
             }
         }
 

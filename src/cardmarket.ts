@@ -1,5 +1,6 @@
-import { Card, Cards } from "scryfall-sdk";
+import { Card, Cards, setFuzzySearch, Sets } from "scryfall-sdk";
 import { CardTableData } from "./messages.ts";
+import fuzzysort from "fuzzysort";
 
 export const cardmarketBase = "cardmarket.com";
 export const cardmarketMatcher = `*://*.${cardmarketBase}/*`;
@@ -79,6 +80,13 @@ export type ResultMissing = {
 };
 export type Result = ResultFound | ResultMissing
 
+setFuzzySearch((search, targets, key) => {
+    // `search` is the user-inputted string
+    // `targets` are the objects to search through (in `Scry.Sets.byName` these are `Set` objects)
+    // `key` is the key in the targets to search on
+    return fuzzysort.go(search, targets, { key: key.toString() })[0]?.obj;
+})
+
 const getCardFallback = async (cardTableData: CardTableData): Promise<Card> => {
     const { collectorNumber, name } = cardTableData;
 
@@ -91,13 +99,13 @@ const getCardFallback = async (cardTableData: CardTableData): Promise<Card> => {
     return cardResult;
 }
 
-export const getCardFromProductId = async (cardTableData: CardTableData) => {
+export const getCardsFromProductId = async (cardTableData: CardTableData): Promise<(ResultFound | ResultMissing)[] | undefined> => {
     const { productId, amount, language, isFoil, price, condition } = cardTableData;
     if (!Number.isNaN(productId) && productId > 0) {
-        let card: ResultFound | ResultMissing;
+        let cards: (ResultFound | ResultMissing)[];
         try {
             const scryfallResult = await Cards.byCardmarketId(productId);
-            card = {
+            cards = [{
                 resultType: ResultTypes.CARDMARKET_ID,
                 card: scryfallResult,
                 amount,
@@ -105,28 +113,93 @@ export const getCardFromProductId = async (cardTableData: CardTableData) => {
                 isFoil,
                 price,
                 condition,
-            };
+            }];
         } catch (error) {
             console.warn("Could not find card with productId", productId, error);
             try {
-                const fallbackResult = await getCardFallback(cardTableData);
-                card = {
-                    resultType: ResultTypes.FALLBACK,
-                    card: fallbackResult,
-                    amount,
-                    language,
-                    isFoil,
-                    price,
-                    condition,
-                };
+                if (cardTableData.name.toLowerCase().includes("token")) {
+                    const setName = cardTableData.expansionName.replace(": Extras", "").replace("Commander: ", "").replace(":", "") + " Tokens";
+                    const set = await Sets.byName(setName, true);
+                    let collectorNumbers = /(\d+)\/(\d+)/g.exec(cardTableData.collectorNumber)?.slice(1);
+                    if (!collectorNumbers) {
+                        collectorNumbers = /\d+/.exec(cardTableData.collectorNumber)?.slice(0);
+                    }
+                    const results: Card[] = [];
+                    try {
+                        if (!collectorNumbers || collectorNumbers.length <= 0) {
+                            throw Error("No collector numbers found.");
+                        }
+                        for (const collectorNumber of collectorNumbers) {
+                            const card = await Cards.bySet(set, collectorNumber);
+                            results.push(card);
+                        }
+                    } catch (e) {
+                        console.error("Falling back to attribute search for tokens. Reason: ", e);
+                        const names = cardTableData.name.split("//");
+                        for (let i = 0; i < names.length; i++) {
+                            const name = names[i];
+                            let [_, tokenName, details, colours, power, toughness, keywords] = (/([^\(]+) Token( \((\w+) ([\d\*\+]+)\/([\d\*\+]+)(?: ([^\)]+))?\))?/gi.exec(name) ?? []) as (string | undefined)[];
+                            if (!tokenName) {
+                                throw Error(`Card includes \"Token\" but doesn't have a name. Parsed title: ${name}`);
+                            }
+                            const isArtifact = colours?.includes("A") ?? false;
+                            colours = colours?.replace("A", "");
+                            details = details?.trim();
+                            keywords = keywords?.trim();
+                            let searchString = `is:extra ${tokenName} set:"${setName}"`;
+                            if (colours) {
+                                searchString += ` c=${colours}`;
+                            }
+                            if (isArtifact) {
+                                searchString += ` t:artifact`;
+                            }
+                            if (power && toughness) {
+                                searchString += ` pow:"${power}" tou:"${toughness}"`;
+                            }
+                            if (keywords) {
+                                searchString += ` o:"${keywords}"`;
+                            }
+                            for await (const card of Cards.search(searchString).all()) {
+                                // TODO: handle query results properly
+                                // Instead of 
+                                // results.push(card); break; // <- this accepts only the first alternative
+                                // make it so that results can hold a list of different alternatives for a card,
+                                // from which the user can choose from.
+                                results.push(card);
+                                break;
+                            }
+                        }
+                    }
+                    return results.map(it => ({
+                        resultType: ResultTypes.FALLBACK,
+                        card: it,
+                        amount,
+                        language,
+                        isFoil,
+                        price,
+                        condition,
+                    } satisfies ResultFound))
+                }
+                else {
+                    const fallbackResult = await getCardFallback(cardTableData);
+                    cards = [{
+                        resultType: ResultTypes.FALLBACK,
+                        card: fallbackResult,
+                        amount,
+                        language,
+                        isFoil,
+                        price,
+                        condition,
+                    }];
+                }
             } catch (fallbackError) {
                 console.warn("Unable to fetch:", fallbackError);
-                card = {
+                cards = [{
                     resultType: ResultTypes.MISSING,
                     ...cardTableData
-                };
+                }];
             }
         }
-        return card;
+        return cards;
     }
 }

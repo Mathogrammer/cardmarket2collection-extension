@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import browser from "webextension-polyfill";
 import { ArchidektCredentials } from '@/archidekt';
 import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardsFromProductId } from '@/cardmarket';
@@ -22,8 +22,35 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
     const [fallbackCards, setFallbackCards] = useState<ResultFound[]>();
     const [missingCards, setMissingCards] = useState<ResultMissing[]>();
     const [isImporting, setIsImporting] = useState(false);
+    const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
 
     const allCards = useMemo(() => cards && fallbackCards && [...cards, ...fallbackCards], [cards, fallbackCards]);
+
+    const [prevCards, setPrevCards] = useState(allCards);
+
+    if (prevCards !== allCards) {
+        if (allCards !== undefined) {
+            setSelectedIndices(new Set(allCards.map((_, index) => index)));
+        }
+        else {
+            setSelectedIndices(new Set());
+        }
+        setPrevCards(allCards);
+    }
+
+    const selectedCards = useMemo(() => allCards?.filter((_, index) => selectedIndices.has(index)) ?? [], [allCards, selectedIndices]);
+
+    const handleSelectedChange = useCallback((index: number, selected: boolean) => {
+        setSelectedIndices(previous => {
+            const next = new Set(previous);
+            if (selected) {
+                next.add(index);
+            } else {
+                next.delete(index);
+            }
+            return next;
+        });
+    }, []);
 
     const getCards = useCallback(async (cardTableData: CardTableData[]) => {
         const cards: ResultFound[] = [];
@@ -99,11 +126,11 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
         }
 
         return (
-            <button disabled={isImporting} onClick={() => handleImport(allCards, { username, password })}>
+            <button disabled={isImporting || selectedCards.length === 0} onClick={() => handleImport(selectedCards, { username, password })}>
                 {!isImporting ? "Import to Archidekt" : "Importing..."}
             </button>
         )
-    }, [isImporting, allCards, archidektCredentials, handleImport]);
+    }, [isImporting, allCards, selectedCards, archidektCredentials, handleImport]);
 
     const handleCsvExport = useCallback((cards: ResultFound[]) => {
         return () => {
@@ -130,25 +157,54 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
         )
     }
 
+    const allSelected = allCards.length > 0 && selectedCards.length === allCards.length;
+
     return (
         <div>
+            <label>
+                <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={(e) => setSelectedIndices(e.target.checked ? new Set(allCards.map((_, index) => index)) : new Set())}
+                />
+                Select all
+            </label>
             <h4>Cards found: </h4>
             <ul>
-                {cards.map(it => (<CardItem result={it} />))}
+                {cards.map((it, index) => (
+                    <CardItem
+                        key={it.card.id}
+                        result={it}
+                        selected={selectedIndices.has(index)}
+                        onSelectedChange={(selected) => handleSelectedChange(index, selected)}
+                    />
+                ))}
             </ul>
             <h4>Cards found using fallback method (please check for correctness!): </h4>
             <ul>
-                {fallbackCards.map(it => (<CardItem result={it} />))}
+                {fallbackCards.map((it, index) => {
+                    const allCardsIndex = cards.length + index;
+                    return (
+                        <CardItem
+                            key={it.card.id}
+                            result={it}
+                            selected={selectedIndices.has(allCardsIndex)}
+                            onSelectedChange={(selected) => handleSelectedChange(allCardsIndex, selected)}
+                        />
+                    );
+                })}
             </ul>
             <h4>Cards that couldn't be found: </h4>
             {/* <ul> */}
             <div className='missing-cards'>
                 {missingCards.map(it => (
-                    `[${it.productId},${it.amount},"${it.name}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"]\n`
+                    <p key={it.productId}>
+                        `[${it.productId},${it.amount},"${it.name}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"]\n`
+                    </p>
                 ))}
             </div>
             {importButton}
-            <button onClick={handleCsvExport(allCards)}>
+            <button onClick={handleCsvExport(selectedCards)} disabled={selectedCards.length === 0}>
                 Als CSV exportieren
             </button>
         </div>

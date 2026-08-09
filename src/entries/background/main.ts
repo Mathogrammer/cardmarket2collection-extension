@@ -7,7 +7,7 @@ browser.runtime.onInstalled.addListener(() => {
     console.log("Extension installed");
 });
 
-browser.runtime.onMessage.addListener((message: Message) => {
+browser.runtime.onMessage.addListener(makeMessageListener((message: Message) => {
     console.log("Received message", message);
     if (message.type === IMPORT_CARDS_TO_ARCHIDEKT) {
         const { cards, archidektCredentials } = message;
@@ -16,18 +16,18 @@ browser.runtime.onMessage.addListener((message: Message) => {
     else if (message.type === ROUNDABOUT_MESSAGE) {
         const response = message.data;
         browser.tabs.create({ url: browser.runtime.getURL("src/result-page/index.html"), active: true }).then(() => {
-            const listener = (message: Message, sender: Runtime.MessageSender) => {
+            const listener = makeMessageListener((message: Message, sender: Runtime.MessageSender) => {
                 console.log("Received some message", sender.tab?.id, response);
                 if (message.type === RESULT_PAGE_READY) {
                     console.log("Received ready message", sender.tab?.id, response);
                     browser.runtime.sendMessage({ type: MESSAGE_QUERY_CARDS, data: response });
                     browser.runtime.onMessage.removeListener(listener);
                 }
-            }
+            });
             browser.runtime.onMessage.addListener(listener);
             console.log("listening for ready message");
         });
     }
-});
+}));
 
 console.log("Listening for messages");

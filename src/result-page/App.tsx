@@ -13,12 +13,12 @@ function App() {
     const [password, setPassword] = useState<string>(debugCredentials.archidekt.password);
 
     useEffect(() => {
-        const listener = (message: Message) => {
+        const listener = makeMessageListener((message: Message) => {
             if (message.type === MESSAGE_QUERY_CARDS) {
                 console.log("Received query message", message);
                 setResponse(message.data as GetCardsResponse);
             }
-        }
+        });
         console.log("Setup listener");
 
         browser.runtime.onMessage.addListener(listener);

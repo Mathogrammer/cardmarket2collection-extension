@@ -66,11 +66,11 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
 
     useEffect(() => {
         if (isImporting) {
-            const listener = (message: Message) => {
+            const listener = makeMessageListener((message: Message) => {
                 if (message.type === IMPORT_SUCCESS) {
                     setIsImporting(false);
                 }
-            }
+            });
             browser.runtime.onMessage.addListener(listener);
 
             return () => {

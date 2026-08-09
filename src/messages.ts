@@ -51,8 +51,8 @@ export const makeMessageListener = (listener: (message: Message, sender: Runtime
             console.error("Received null message, aborting.");
             return;
         }
-        if ("type" in message && typeof message.type === "string" && "data" in message) {
-            listener(message as Message, sender)
+        if ("type" in message && typeof message.type === "string") {
+            return listener(message as Message, sender);
         }
         else {
             console.error("Received unknown message, aborting.", message);

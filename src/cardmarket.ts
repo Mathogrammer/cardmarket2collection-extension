@@ -92,7 +92,7 @@ const getCardFallback = async (cardTableData: CardTableData): Promise<Card> => {
 
     const queryResult = await (await Cards.byName(name, true)).getPrints();
     // Include expansion name and language number
-    const cardResult = queryResult.find(it => it.collector_number === collectorNumber);
+    const cardResult = queryResult.find(it => it.collector_number === /\d+/.exec(collectorNumber)?.[0]);
     if (!cardResult)
         throw new Error(`Unable to find matching card data in scryfall\n\tName: ${name}, Collector #: ${collectorNumber}`);
 

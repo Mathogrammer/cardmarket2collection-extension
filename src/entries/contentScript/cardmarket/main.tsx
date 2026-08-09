@@ -1,16 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import browser from "webextension-polyfill";
-import { GetCardsResponse, CardTableData, MESSAGE_GET_CARDS, Message } from "@/messages";
+import { GetCardsResponse, CardTableData, MESSAGE_GET_CARDS } from "@/messages";
 import "../../enableDevHmr";
 import renderContent from "../renderContent";
 import App from './App';
 import { CardmarketLanguage } from "@/cardmarket";
 
-browser.runtime.onMessage.addListener((data: Message | undefined, _sender, sendResponse: (response: any) => void) => {
+// @ts-ignore(2345): Returning true yields different semantics. Not sure why this is enforced here. 
+browser.runtime.onMessage.addListener((data: unknown, _sender, sendResponse: (response: any) => void) => {
     console.log("Receiving message", data);
 
-    if (data?.type === MESSAGE_GET_CARDS) {
+    if (typeof data === "object" && data && "type" in data && data.type === MESSAGE_GET_CARDS) {
         console.log("Getting cards");
 
         const result = getCardTableData();

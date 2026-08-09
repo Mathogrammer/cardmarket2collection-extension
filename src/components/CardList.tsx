@@ -1,10 +1,17 @@
-import { FC, Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import browser from "webextension-polyfill";
+import { Download, Loader2 } from 'lucide-react';
 import { ArchidektCredentials } from '@/archidekt';
-import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, ResultTypes, getCardsFromProductId } from '@/cardmarket';
+import { ResultFound, ResultMissing, ResultTypes, getCardsFromProductId } from '@/cardmarket';
 import { CardTableData, IMPORT_CARDS_TO_ARCHIDEKT, IMPORT_SUCCESS, ImportCardToArchidektMessage, makeMessageListener, Message } from '@/messages';
 import { CardItem } from './CardItem';
-import './Cards.css';
+import { MissingCardsTable } from './MissingCardsTable';
+import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableHeader, TableRow, TableHead, TableBody } from '@/components/ui/table';
+import { cardsToArchidektCsv, downloadCsv } from '@/lib/csv';
 
 export type CardListProps = {
     cardTableData: CardTableData[],
@@ -108,51 +115,32 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
         }
     }, [isImporting]);
 
-    const importButton = useMemo(() => {
+    const importButtonLabel = useMemo(() => {
         const { username, password } = archidektCredentials;
 
         if (allCards === undefined) {
-            return (
-                <button disabled={true}>
-                    Loading...
-                </button>
-            );
+            return "Loading...";
         } else if (username === undefined || password === undefined) {
-            return (
-                <button disabled={true}>
-                    To import, please fill in Archidekt credentials
-                </button>
-            );
+            return "Fill in Archidekt credentials to import";
         }
+        return isImporting ? "Importing..." : "Import to Archidekt";
+    }, [isImporting, allCards, archidektCredentials]);
 
-        return (
-            <button disabled={isImporting || selectedCards.length === 0} onClick={() => handleImport(selectedCards, { username, password })}>
-                {!isImporting ? "Import to Archidekt" : "Importing..."}
-            </button>
-        )
-    }, [isImporting, allCards, selectedCards, archidektCredentials, handleImport]);
+    const importDisabled = allCards === undefined
+        || archidektCredentials.username === undefined
+        || archidektCredentials.password === undefined
+        || isImporting
+        || selectedCards.length === 0;
 
-    const handleCsvExport = useCallback((cards: ResultFound[]) => {
-        return () => {
-            const csvContent = cards.map(it => (
-                `${it.amount},"${it.card.id}","${it.isFoil ? "Foil" : "Normal"}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"`
-            )).join("\n");
-            const csv = `Amount,ScryfallId,Foil,Language,Price,Condition\n${csvContent}\n`
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'cards.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-    }, []);
-
+    const handleExportSelected = useCallback(() => {
+        downloadCsv("cards.csv", cardsToArchidektCsv(selectedCards));
+    }, [selectedCards]);
 
     if (cards === undefined || fallbackCards === undefined || missingCards === undefined || allCards === undefined) {
         return (
-            <div>
-                Loading...
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-primary">
+                <Loader2 className="size-10 animate-spin" />
+                <span className="text-lg font-medium">Matching cards against Scryfall...</span>
             </div>
         )
     }
@@ -160,53 +148,59 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
     const allSelected = allCards.length > 0 && selectedCards.length === allCards.length;
 
     return (
-        <div>
-            <label>
-                <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={(e) => setSelectedIndices(e.target.checked ? new Set(allCards.map((_, index) => index)) : new Set())}
-                />
-                Select all
-            </label>
-            <h4>Cards found: </h4>
-            <ul>
-                {cards.map((it, index) => (
-                    <CardItem
-                        key={it.card.id}
-                        result={it}
-                        selected={selectedIndices.has(index)}
-                        onSelectedChange={(selected) => handleSelectedChange(index, selected)}
-                    />
-                ))}
-            </ul>
-            <h4>Cards found using fallback method (please check for correctness!): </h4>
-            <ul>
-                {fallbackCards.map((it, index) => {
-                    const allCardsIndex = cards.length + index;
-                    return (
-                        <CardItem
-                            key={it.card.id}
-                            result={it}
-                            selected={selectedIndices.has(allCardsIndex)}
-                            onSelectedChange={(selected) => handleSelectedChange(allCardsIndex, selected)}
-                        />
-                    );
-                })}
-            </ul>
-            <h4>Cards that couldn't be found: </h4>
-            {/* <ul> */}
-            <div className='missing-cards'>
-                {missingCards.map(it => (
-                    <p key={it.productId}>
-                        `[${it.productId},${it.amount},"${it.name}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"]\n`
-                    </p>
-                ))}
-            </div>
-            {importButton}
-            <button onClick={handleCsvExport(selectedCards)} disabled={selectedCards.length === 0}>
-                Als CSV exportieren
-            </button>
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Cards found</CardTitle>
+                    <CardDescription>Cards matched with rows flagged as fallback matches worth double-checking.</CardDescription>
+                    <CardAction>
+                        <Badge variant="secondary">{allCards.length}</Badge>
+                    </CardAction>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>
+                                    <Checkbox
+                                        checked={allSelected}
+                                        onCheckedChange={(checked) => setSelectedIndices(checked ? new Set(allCards.map((_, index) => index)) : new Set())}
+                                    />
+                                </TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Set</TableHead>
+                                <TableHead>Condition</TableHead>
+                                <TableHead>Language</TableHead>
+                                <TableHead>Foil</TableHead>
+                                <TableHead>Price</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {allCards.map((it, index) => (
+                                <CardItem
+                                    key={it.card.id}
+                                    result={it}
+                                    isFallback={index >= cards.length}
+                                    selected={selectedIndices.has(index)}
+                                    onSelectedChange={(selected) => handleSelectedChange(index, selected)}
+                                />
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+                <CardFooter className="justify-end gap-2">
+                    <Button variant="outline" onClick={handleExportSelected} disabled={selectedCards.length === 0}>
+                        <Download /> Export selected as CSV
+                    </Button>
+                    <Button onClick={() => handleImport(selectedCards, archidektCredentials as ArchidektCredentials)} disabled={importDisabled}>
+                        {isImporting && <Loader2 className="animate-spin" />}
+                        {importButtonLabel}
+                    </Button>
+                </CardFooter>
+            </Card>
+
+            <MissingCardsTable missingCards={missingCards} />
         </div>
     )
 }

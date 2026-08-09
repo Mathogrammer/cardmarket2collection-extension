@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import browser from "webextension-polyfill";
+import { Loader2 } from "lucide-react";
 import { ArchidektForm } from "@/components/ArchidektForm";
 import { CardList } from "@/components/CardList";
+import { ScannedCardsTable } from "@/components/ScannedCardsTable";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { GetCardsResponse, makeMessageListener, Message, MESSAGE_QUERY_CARDS, RESULT_PAGE_READY } from "@/messages";
 import "./App.css";
 import { debugCredentials } from "@/debug";
@@ -31,33 +34,29 @@ function App() {
 
     if (response === undefined) {
         return (
-            <main>
-                <div>
-                    Loading...
+            <main className="flex min-h-screen items-center justify-center bg-background text-foreground">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="size-5 animate-spin" />
+                    Waiting for scanned cards...
                 </div>
             </main>
         )
     }
 
     return (
-        <main>
-            <div>
-                <ArchidektForm {...{ username, setUsername, password, setPassword }} />
-                <p>Cards retrieved:</p>
-                <ul>
-                    {
-                        response.response.map((card) => {
-                            return (
-                                <li key={card.productId}>
-                                    {card.name}, {card.amount}, {card.condition}, {card.language}, {card.price}
-                                </li>
-                            );
-                        })
-                    }
-                </ul>
-                <CardList cardTableData={response.response} archidektCredentials={{ username, password }} />
-            </div>
-        </main>
+        <TooltipProvider>
+            <main className="min-h-screen bg-background text-foreground">
+                <div className="mx-auto max-w-5xl space-y-8 px-6 py-8">
+                    <header className="space-y-1">
+                        <h1 className="text-2xl font-semibold">Archidekt import results</h1>
+                        <p className="text-muted-foreground">Review the cards scanned from your Cardmarket order before importing them.</p>
+                    </header>
+                    <ArchidektForm {...{ username, setUsername, password, setPassword }} />
+                    <CardList cardTableData={response.response} archidektCredentials={{ username, password }} />
+                    <ScannedCardsTable cardTableData={response.response} />
+                </div>
+            </main>
+        </TooltipProvider>
     );
 }
 

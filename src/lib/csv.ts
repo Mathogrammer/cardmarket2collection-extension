@@ -1,4 +1,4 @@
-import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing } from "@/cardmarket";
+import { CardmarketConditionToArchidektCondition, CardmarketLanguageToLanguageCode, ResultFound, ResultMissing, getMissingCardFaceName } from "@/cardmarket";
 
 export const downloadCsv = (filename: string, content: string) => {
     const blob = new Blob([content], { type: 'text/csv' });
@@ -23,7 +23,7 @@ export const cardsToArchidektCsv = (cards: ResultFound[]): string => {
 
 export const missingCardsToCsv = (cards: ResultMissing[]): string => {
     const rows = cards.map(it => (
-        `${it.productId},${it.amount},"${it.name}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"`
+        `${it.productId},${it.amount},"${getMissingCardFaceName(it)}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"`
     )).join("\n");
     return `ProductId,Amount,Name,Foil,Expansion,Language,Price,Condition\n${rows}\n`;
 }

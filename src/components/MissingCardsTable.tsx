@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { CardmarketConditionToName, ResultMissing } from "@/cardmarket";
+import { CardmarketConditionToName, ResultMissing, getMissingCardFaceName } from "@/cardmarket";
 import { copyText, downloadCsv, missingCardsToCsv } from "@/lib/csv";
 import { FoilBadge, LanguageBadge, formatPrice } from "./card-table-cells";
 
@@ -42,19 +42,19 @@ export const MissingCardsTable: FC<MissingCardsTableProps> = ({ missingCards }) 
                             <TableHead>Set</TableHead>
                             <TableHead>Condition</TableHead>
                             <TableHead>Language</TableHead>
-                            <TableHead>Foil</TableHead>
+                            <TableHead className="text-center">Foil</TableHead>
                             <TableHead>Price</TableHead>
                             <TableHead className="text-right">Amount</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {missingCards.map((it) => (
-                            <TableRow key={it.productId}>
-                                <TableCell className="max-w-64 min-w-40 font-medium whitespace-normal">{it.name}</TableCell>
+                        {missingCards.map((it, index) => (
+                            <TableRow key={`${it.productId}-${index}`}>
+                                <TableCell className="max-w-64 min-w-40 font-medium whitespace-normal">{getMissingCardFaceName(it)}</TableCell>
                                 <TableCell className="max-w-48 min-w-32 whitespace-normal text-muted-foreground">{it.expansionName}</TableCell>
                                 <TableCell>{CardmarketConditionToName[it.condition]}</TableCell>
                                 <TableCell><LanguageBadge language={it.language} /></TableCell>
-                                <TableCell><FoilBadge isFoil={it.isFoil} /></TableCell>
+                                <TableCell className="text-center"><FoilBadge isFoil={it.isFoil} /></TableCell>
                                 <TableCell>{formatPrice(it.price)}</TableCell>
                                 <TableCell className="text-right">{it.amount}</TableCell>
                             </TableRow>

@@ -72,6 +72,7 @@ export type ResultFound = {
 export type ResultMissing = {
     resultType: ResultTypes.MISSING,
     name: string | undefined,
+    faceIndex?: number,
     productId: number,
     language: CardmarketLanguage,
     condition: CardmarketCondition,
@@ -82,6 +83,13 @@ export type ResultMissing = {
     cardmarketImageUrl?: string,
 };
 export type Result = ResultFound | ResultMissing
+
+export const getMissingCardFaceName = (missing: ResultMissing): string | undefined => {
+    if (missing.faceIndex === undefined) {
+        return missing.name;
+    }
+    return missing.name?.split("//")[missing.faceIndex]?.trim();
+}
 
 setFuzzySearch((search, targets, key) => {
     // `search` is the user-inputted string
@@ -178,6 +186,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                                     missingCards.push({
                                         resultType: ResultTypes.MISSING,
                                         ...cardTableData,
+                                        faceIndex: names.length > 1 ? i : undefined,
                                         cardmarketImageUrl: imageUrl,
                                     });
                                 }
@@ -187,6 +196,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                                 missingCards.push({
                                     resultType: ResultTypes.MISSING,
                                     ...cardTableData,
+                                    faceIndex: names.length > 1 ? i : undefined,
                                     cardmarketImageUrl: imageUrl,
                                 });
                             }

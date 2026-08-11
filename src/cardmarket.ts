@@ -136,7 +136,8 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                     if (!collectorNumbers) {
                         collectorNumbers = /\d+/.exec(cardTableData.collectorNumber)?.slice(0);
                     }
-                    const results: Card[][] = [];
+                    const results: Card[] = [];
+                    const fallbackResults: Card[][] = [];
                     const missingCards: ResultMissing[] = [];
                     try {
                         if (!collectorNumbers || collectorNumbers.length <= 0) {
@@ -144,7 +145,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                         }
                         for (const collectorNumber of collectorNumbers) {
                             const card = await Cards.bySet(set, collectorNumber);
-                            results.push([card]);
+                            results.push(card);
                         }
                     } catch (e) {
                         console.error("Falling back to attribute search for tokens. Reason: ", e);
@@ -179,7 +180,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                             try {
                                 const candidates = (await Cards.search(searchString).waitForAll()).slice(0, 10);
                                 if (candidates.length > 0) {
-                                    results.push(candidates);
+                                    fallbackResults.push(candidates);
                                 }
                                 else {
                                     console.warn(`Did not find any results for ${cardTableData.name}.`);
@@ -203,7 +204,17 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                         }
                     }
                     return [
-                        ...results.filter(it => it.length > 0).map(candidates => ({
+                        ...results.map(card => ({
+                            resultType: ResultTypes.CARDMARKET_ID,
+                            card: card,
+                            amount,
+                            language,
+                            isFoil,
+                            price,
+                            condition,
+                            cardmarketImageUrl: imageUrl,
+                        } satisfies ResultFound)),
+                        ...fallbackResults.map(candidates => ({
                             resultType: ResultTypes.FALLBACK,
                             card: candidates[0],
                             alternatives: candidates.length > 1 ? candidates : undefined,

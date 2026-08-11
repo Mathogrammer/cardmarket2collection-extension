@@ -7,22 +7,43 @@ import renderContent from "../renderContent";
 import App from './App';
 import { CardmarketLanguage } from "@/cardmarket";
 
-// @ts-ignore(2345): Returning true yields different semantics. Not sure why this is enforced here. 
-browser.runtime.onMessage.addListener((data: unknown, _sender, sendResponse: (response: any) => void) => {
+browser.runtime.onMessage.addListener((data: unknown) => {
     console.log("Receiving message", data);
 
     if (typeof data === "object" && data && "type" in data && data.type === MESSAGE_GET_CARDS) {
         console.log("Getting cards");
 
-        const result = getCardTableData();
-        console.log("sending result", result);
-        sendResponse(result);
+        return getCardTableData().then((result) => {
+            console.log("sending result", result);
+            return result;
+        });
     }
 });
 
 console.log("Content script loaded");
 
-const getCardTableData = (): GetCardsResponse => {
+// Fetched from within the content script (rather than the result page) so the request is
+// same-origin to cardmarket.com and isn't rejected by the image host's CORS policy.
+const fetchImageAsDataUrl = async (url: string): Promise<string | undefined> => {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Unexpected status ${response.status}`);
+        }
+        const blob = await response.blob();
+        return await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.warn("Failed to fetch Cardmarket image", url, error);
+        return undefined;
+    }
+}
+
+const getCardTableData = async (): Promise<GetCardsResponse> => {
     const tables = document.getElementsByTagName("table");
     const result: GetCardsResponse = {
         response: [],
@@ -32,6 +53,13 @@ const getCardTableData = (): GetCardsResponse => {
         const cards = getCardDataFromTable(table);
         result.response.push(...cards);
     }
+
+    await Promise.all(result.response.map(async (card) => {
+        if (card.imageUrl) {
+            card.imageUrl = await fetchImageAsDataUrl(card.imageUrl);
+        }
+    }));
+
     console.log("Returning result");
 
     return result;

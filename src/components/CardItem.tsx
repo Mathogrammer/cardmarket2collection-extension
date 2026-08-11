@@ -1,5 +1,6 @@
 import { FC } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { Card as ScryfallCard } from 'scryfall-sdk'
 import { CardmarketConditionToName, ResultFound } from '@/cardmarket'
 import { TableRow, TableCell } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -14,9 +15,10 @@ type CardItemProps = {
     isFallback: boolean,
     selected: boolean,
     onSelectedChange: (selected: boolean) => void,
+    onCardChange?: (card: ScryfallCard) => void,
 }
 
-export const CardItem: FC<CardItemProps> = ({ result: { card, amount, isFoil, language, condition, price, cardmarketImageUrl }, isFallback, selected, onSelectedChange }) => {
+export const CardItem: FC<CardItemProps> = ({ result: { card, amount, isFoil, language, condition, price, cardmarketImageUrl, alternatives }, isFallback, selected, onSelectedChange, onCardChange }) => {
     return (
         <HoverCard>
             <HoverCardTrigger render={<TableRow className={cn(selected && "bg-primary/10 hover:bg-primary/15")} />}>
@@ -46,7 +48,7 @@ export const CardItem: FC<CardItemProps> = ({ result: { card, amount, isFoil, la
                 <TableCell className="text-right">{amount}</TableCell>
             </HoverCardTrigger>
             <HoverCardContent side="left" align="start">
-                <CardImagePreview card={card} isFoil={isFoil} cardmarketImageUrl={cardmarketImageUrl} />
+                <CardImagePreview card={card} isFoil={isFoil} cardmarketImageUrl={cardmarketImageUrl} alternatives={alternatives} onCardChange={onCardChange} />
             </HoverCardContent>
         </HoverCard>
     )

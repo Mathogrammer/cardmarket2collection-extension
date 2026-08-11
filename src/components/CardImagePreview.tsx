@@ -3,12 +3,35 @@ import { Card } from "scryfall-sdk";
 import { RefreshCcw } from "lucide-react";
 import { getSpecialFoilName } from "@/lib/foil";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type CardImagePreviewProps = {
     card: Card,
     isFoil: boolean,
     cardmarketImageUrl?: string,
+    alternatives?: Card[],
+    onCardChange?: (card: Card) => void,
 }
+
+const AlternativeCardPicker: FC<{ card: Card, alternatives: Card[], onCardChange: (card: Card) => void }> = ({ card, alternatives, onCardChange }) => (
+    <Select
+        items={alternatives.map((it) => ({ value: it, label: `${it.name} — ${it.set_name} (#${it.collector_number})` }))}
+        value={card}
+        isItemEqualToValue={(a, b) => a.id === b.id}
+        onValueChange={(value) => value && onCardChange(value)}
+    >
+        <SelectTrigger className="w-full">
+            <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+            {alternatives.map((it) => (
+                <SelectItem key={it.id} value={it}>
+                    {it.name} — {it.set_name} (#{it.collector_number})
+                </SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
+)
 
 const FoilOverlay: FC<{ foilName?: string }> = ({ foilName }) => (
     <>
@@ -82,15 +105,20 @@ const ScryfallImageFrame: FC<{ card: Card, isFoil?: boolean, foilName?: string }
     )
 }
 
-export const CardImagePreview: FC<CardImagePreviewProps> = ({ card, isFoil, cardmarketImageUrl }) => {
+export const CardImagePreview: FC<CardImagePreviewProps> = ({ card, isFoil, cardmarketImageUrl, alternatives, onCardChange }) => {
     const foilName = isFoil ? getSpecialFoilName(card) : undefined;
 
     return (
-        <div className={cn("flex gap-3", !cardmarketImageUrl && "justify-center")}>
-            <ScryfallImageFrame card={card} isFoil={isFoil} foilName={foilName} />
-            {cardmarketImageUrl && (
-                <ImageFrame label="Cardmarket" src={cardmarketImageUrl} isFoil={isFoil} foilName={foilName} />
+        <div className="flex flex-col gap-2">
+            {alternatives && alternatives.length > 1 && onCardChange && (
+                <AlternativeCardPicker card={card} alternatives={alternatives} onCardChange={onCardChange} />
             )}
+            <div className={cn("flex gap-3", !cardmarketImageUrl && "justify-center")}>
+                <ScryfallImageFrame card={card} isFoil={isFoil} foilName={foilName} />
+                {cardmarketImageUrl && (
+                    <ImageFrame label="Cardmarket" src={cardmarketImageUrl} isFoil={isFoil} foilName={foilName} />
+                )}
+            </div>
         </div>
     )
 }

@@ -60,6 +60,7 @@ export enum ResultTypes {
 export type ResultFound = {
     resultType: ResultTypes.CARDMARKET_ID | ResultTypes.FALLBACK,
     card: Card,
+    alternatives?: Card[],
     amount: number,
     language: CardmarketLanguage,
     condition: CardmarketCondition,
@@ -127,14 +128,14 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                     if (!collectorNumbers) {
                         collectorNumbers = /\d+/.exec(cardTableData.collectorNumber)?.slice(0);
                     }
-                    const results: Card[] = [];
+                    const results: Card[][] = [];
                     try {
                         if (!collectorNumbers || collectorNumbers.length <= 0) {
                             throw Error("No collector numbers found.");
                         }
                         for (const collectorNumber of collectorNumbers) {
                             const card = await Cards.bySet(set, collectorNumber);
-                            results.push(card);
+                            results.push([card]);
                         }
                     } catch (e) {
                         console.error("Falling back to attribute search for tokens. Reason: ", e);
@@ -162,20 +163,20 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                             if (keywords) {
                                 searchString += ` o:"${keywords}"`;
                             }
+                            const candidates: Card[] = [];
                             for await (const card of Cards.search(searchString).all()) {
-                                // TODO: handle query results properly
-                                // Instead of 
-                                // results.push(card); break; // <- this accepts only the first alternative
-                                // make it so that results can hold a list of different alternatives for a card,
-                                // from which the user can choose from.
-                                results.push(card);
-                                break;
+                                candidates.push(card);
+                                if (candidates.length >= 10) {
+                                    break;
+                                }
                             }
+                            results.push(candidates);
                         }
                     }
-                    return results.map(it => ({
+                    return results.map(candidates => ({
                         resultType: ResultTypes.FALLBACK,
-                        card: it,
+                        card: candidates[0],
+                        alternatives: candidates.length > 1 ? candidates : undefined,
                         amount,
                         language,
                         isFoil,

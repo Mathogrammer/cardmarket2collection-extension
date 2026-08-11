@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import browser from "webextension-polyfill";
 import { Download, Loader2 } from 'lucide-react';
+import { Card as ScryfallCard } from 'scryfall-sdk';
 import { ArchidektCredentials } from '@/archidekt';
 import { ResultFound, ResultMissing, ResultTypes, getCardsFromProductId } from '@/cardmarket';
 import { CardTableData, IMPORT_CARDS_TO_ARCHIDEKT, IMPORT_SUCCESS, ImportCardToArchidektMessage, makeMessageListener, Message } from '@/messages';
@@ -57,6 +58,12 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
             }
             return next;
         });
+    }, []);
+
+    const handleCardChange = useCallback((fallbackIndex: number, newCard: ScryfallCard) => {
+        setFallbackCards(previous =>
+            previous?.map((it, i) => (i === fallbackIndex ? { ...it, card: newCard } : it))
+        );
     }, []);
 
     const getCards = useCallback(async (cardTableData: CardTableData[]) => {
@@ -179,11 +186,12 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
                         <TableBody>
                             {allCards.map((it, index) => (
                                 <CardItem
-                                    key={it.card.id}
+                                    key={index}
                                     result={it}
                                     isFallback={index >= cards.length}
                                     selected={selectedIndices.has(index)}
                                     onSelectedChange={(selected) => handleSelectedChange(index, selected)}
+                                    onCardChange={index >= cards.length ? (newCard) => handleCardChange(index - cards.length, newCard) : undefined}
                                 />
                             ))}
                         </TableBody>

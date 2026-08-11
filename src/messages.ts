@@ -17,6 +17,7 @@ export type CardTableData = {
     expansionName: string,
     isFoil: boolean,
     price: number,
+    imageUrl?: string,
 }
 
 export type GetCardsResponse = {

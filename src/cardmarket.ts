@@ -65,6 +65,7 @@ export type ResultFound = {
     condition: CardmarketCondition,
     isFoil: boolean,
     price: number,
+    cardmarketImageUrl?: string,
 };
 
 export type ResultMissing = {
@@ -77,6 +78,7 @@ export type ResultMissing = {
     expansionName: string | undefined,
     isFoil: boolean,
     price: number,
+    cardmarketImageUrl?: string,
 };
 export type Result = ResultFound | ResultMissing
 
@@ -100,7 +102,7 @@ const getCardFallback = async (cardTableData: CardTableData): Promise<Card> => {
 }
 
 export const getCardsFromProductId = async (cardTableData: CardTableData): Promise<(ResultFound | ResultMissing)[] | undefined> => {
-    const { productId, amount, language, isFoil, price, condition } = cardTableData;
+    const { productId, amount, language, isFoil, price, condition, imageUrl } = cardTableData;
     if (!Number.isNaN(productId) && productId > 0) {
         let cards: (ResultFound | ResultMissing)[];
         try {
@@ -113,6 +115,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                 isFoil,
                 price,
                 condition,
+                cardmarketImageUrl: imageUrl,
             }];
         } catch (error) {
             console.warn("Could not find card with productId", productId, error);
@@ -178,6 +181,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                         isFoil,
                         price,
                         condition,
+                        cardmarketImageUrl: imageUrl,
                     } satisfies ResultFound))
                 }
                 else {
@@ -190,13 +194,15 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                         isFoil,
                         price,
                         condition,
+                        cardmarketImageUrl: imageUrl,
                     }];
                 }
             } catch (fallbackError) {
                 console.warn("Unable to fetch:", fallbackError);
                 cards = [{
                     resultType: ResultTypes.MISSING,
-                    ...cardTableData
+                    ...cardTableData,
+                    cardmarketImageUrl: imageUrl,
                 }];
             }
         }

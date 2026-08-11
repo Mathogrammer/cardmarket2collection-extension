@@ -51,6 +51,8 @@ const getCardDataFromTable = (table: HTMLTableElement): CardTableData[] => {
         const price = Number(row.dataset.price);
         const condition = Number(row.dataset.condition);
         const collectorNumber = row.dataset.number!;
+        const thumbnailTitle = row.querySelector<HTMLSpanElement>("td.preview span.thumbnail-icon")?.dataset.bsTitle;
+        const imageUrl = thumbnailTitle?.match(/src="([^"]+)"/)?.[1];
 
         // TODO Incorporate amount into return value
         console.log("Querying productId", productId, ". Name: ", row.dataset.name, "amount: ", amount);
@@ -66,6 +68,7 @@ const getCardDataFromTable = (table: HTMLTableElement): CardTableData[] => {
                 price,
                 condition,
                 collectorNumber,
+                imageUrl,
             });
         }
     }

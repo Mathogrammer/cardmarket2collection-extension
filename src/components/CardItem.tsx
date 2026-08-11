@@ -38,7 +38,7 @@ export const CardItem: FC<CardItemProps> = ({ result: { card, amount, isFoil, la
             <TableCell className="max-w-48 min-w-32 whitespace-normal text-muted-foreground">{card.set_name}</TableCell>
             <TableCell>{CardmarketConditionToName[condition]}</TableCell>
             <TableCell><LanguageBadge language={language} /></TableCell>
-            <TableCell><FoilBadge isFoil={isFoil} /></TableCell>
+            <TableCell className='text-center'><FoilBadge isFoil={isFoil} /></TableCell>
             <TableCell>{formatPrice(price)}</TableCell>
             <TableCell className="text-right">{amount}</TableCell>
         </TableRow>

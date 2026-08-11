@@ -171,7 +171,7 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
                                 <TableHead>Set</TableHead>
                                 <TableHead>Condition</TableHead>
                                 <TableHead>Language</TableHead>
-                                <TableHead>Foil</TableHead>
+                                <TableHead className='text-center'>Foil</TableHead>
                                 <TableHead>Price</TableHead>
                                 <TableHead className="text-right">Amount</TableHead>
                             </TableRow>

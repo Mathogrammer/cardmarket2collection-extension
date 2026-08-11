@@ -13,20 +13,22 @@ type CardImagePreviewProps = {
     onCardChange?: (card: Card) => void,
 }
 
+const cardOptionLabel = (card: Card) => `${card.name} — ${card.set_name} (#${card.collector_number})`;
+
 const AlternativeCardPicker: FC<{ card: Card, alternatives: Card[], onCardChange: (card: Card) => void }> = ({ card, alternatives, onCardChange }) => (
     <Select
-        items={alternatives.map((it) => ({ value: it, label: `${it.name} — ${it.set_name} (#${it.collector_number})` }))}
         value={card}
         isItemEqualToValue={(a, b) => a.id === b.id}
+        itemToStringValue={(it) => it.id}
         onValueChange={(value) => value && onCardChange(value)}
     >
         <SelectTrigger className="w-full">
-            <SelectValue />
+            <SelectValue>{cardOptionLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
             {alternatives.map((it) => (
                 <SelectItem key={it.id} value={it}>
-                    {it.name} — {it.set_name} (#{it.collector_number})
+                    {cardOptionLabel(it)}
                 </SelectItem>
             ))}
         </SelectContent>

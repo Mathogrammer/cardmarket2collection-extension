@@ -129,6 +129,7 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                         collectorNumbers = /\d+/.exec(cardTableData.collectorNumber)?.slice(0);
                     }
                     const results: Card[][] = [];
+                    const missingCards: ResultMissing[] = [];
                     try {
                         if (!collectorNumbers || collectorNumbers.length <= 0) {
                             throw Error("No collector numbers found.");
@@ -150,40 +151,61 @@ export const getCardsFromProductId = async (cardTableData: CardTableData): Promi
                             colours = colours?.replace("A", "");
                             details = details?.trim();
                             keywords = keywords?.trim();
-                            let searchString = `is:extra ${tokenName} set:"${setName}"`;
+
+                            let searchString = `is:extra ${tokenName} set:"${set.name}"`;
                             if (colours) {
                                 searchString += ` c=${colours}`;
                             }
                             if (isArtifact) {
                                 searchString += ` t:artifact`;
                             }
-                            if (power && toughness) {
-                                searchString += ` pow:"${power}" tou:"${toughness}"`;
+                            if (power && !isNaN(power as unknown as number)) {
+                                searchString += ` pow:${power}`
+                            }
+                            if (toughness && !isNaN(toughness as unknown as number)) {
+                                searchString += ` tou:${toughness}`;
                             }
                             if (keywords) {
                                 searchString += ` o:"${keywords}"`;
                             }
-                            const candidates: Card[] = [];
-                            for await (const card of Cards.search(searchString).all()) {
-                                candidates.push(card);
-                                if (candidates.length >= 10) {
-                                    break;
+                            try {
+                                const candidates = (await Cards.search(searchString).waitForAll()).slice(0, 10);
+                                if (candidates.length > 0) {
+                                    results.push(candidates);
+                                }
+                                else {
+                                    console.warn(`Did not find any results for ${cardTableData.name}.`);
+                                    missingCards.push({
+                                        resultType: ResultTypes.MISSING,
+                                        ...cardTableData,
+                                        cardmarketImageUrl: imageUrl,
+                                    });
                                 }
                             }
-                            results.push(candidates);
+                            catch (e) {
+                                console.warn('Error executing fallback', e);
+                                missingCards.push({
+                                    resultType: ResultTypes.MISSING,
+                                    ...cardTableData,
+                                    cardmarketImageUrl: imageUrl,
+                                });
+                            }
                         }
                     }
-                    return results.map(candidates => ({
-                        resultType: ResultTypes.FALLBACK,
-                        card: candidates[0],
-                        alternatives: candidates.length > 1 ? candidates : undefined,
-                        amount,
-                        language,
-                        isFoil,
-                        price,
-                        condition,
-                        cardmarketImageUrl: imageUrl,
-                    } satisfies ResultFound))
+                    return [
+                        ...results.filter(it => it.length > 0).map(candidates => ({
+                            resultType: ResultTypes.FALLBACK,
+                            card: candidates[0],
+                            alternatives: candidates.length > 1 ? candidates : undefined,
+                            amount,
+                            language,
+                            isFoil,
+                            price,
+                            condition,
+                            cardmarketImageUrl: imageUrl,
+                        } satisfies ResultFound)),
+                        ...missingCards,
+                    ]
                 }
                 else {
                     const fallbackResult = await getCardFallback(cardTableData);

@@ -33,7 +33,7 @@ export const CardItem: FC<CardItemProps> = ({ result: { card, amount, isFoil, la
                                     <AlertTriangle className="size-4 shrink-0 text-amber-500" />
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    Found via fallback search — please check for correctness
+                                    Found via fallback search, please check for correctness
                                 </TooltipContent>
                             </Tooltip>
                         )}

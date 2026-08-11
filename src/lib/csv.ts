@@ -21,6 +21,10 @@ export const cardsToArchidektCsv = (cards: ResultFound[]): string => {
     return `Amount,ScryfallId,Foil,Language,Price,Condition\n${rows}\n`;
 }
 
+export const cardsToTextList = (cards: ResultFound[]): string => {
+    return cards.map(it => `${it.amount} ${it.card.name} (${it.card.set})`).join("\n");
+}
+
 export const missingCardsToCsv = (cards: ResultMissing[]): string => {
     const rows = cards.map(it => (
         `${it.productId},${it.amount},"${getMissingCardFaceName(it)}","${it.isFoil ? "Foil" : "Normal"}","${it.expansionName}","${CardmarketLanguageToLanguageCode[it.language]}",${it.price},"${CardmarketConditionToArchidektCondition[it.condition]}"`

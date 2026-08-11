@@ -1,6 +1,6 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import browser from "webextension-polyfill";
-import { Download, Loader2 } from 'lucide-react';
+import { Copy, Download, Loader2 } from 'lucide-react';
 import { Card as ScryfallCard } from 'scryfall-sdk';
 import { ArchidektCredentials } from '@/archidekt';
 import { ResultFound, ResultMissing, ResultTypes, getCardsFromProductId } from '@/cardmarket';
@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableHeader, TableRow, TableHead, TableBody } from '@/components/ui/table';
-import { cardsToArchidektCsv, downloadCsv } from '@/lib/csv';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { cardsToArchidektCsv, cardsToTextList, copyText, downloadCsv } from '@/lib/csv';
 
 export type CardListProps = {
     cardTableData: CardTableData[],
@@ -31,6 +32,7 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
     const [missingCards, setMissingCards] = useState<ResultMissing[]>();
     const [isImporting, setIsImporting] = useState(false);
     const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+    const [showCopied, setShowCopied] = useState(false);
 
     const allCards = useMemo(() => cards && fallbackCards && [...cards, ...fallbackCards], [cards, fallbackCards]);
 
@@ -143,6 +145,19 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
         downloadCsv("cards.csv", cardsToArchidektCsv(selectedCards));
     }, [selectedCards]);
 
+    const handleCopySelected = useCallback(() => {
+        copyText(cardsToTextList(selectedCards)).then(() => {
+            setShowCopied(true);
+        });
+    }, [selectedCards]);
+
+    useEffect(() => {
+        if (showCopied) {
+            const timeout = setTimeout(() => setShowCopied(false), 1500);
+            return () => clearTimeout(timeout);
+        }
+    }, [showCopied]);
+
     if (cards === undefined || fallbackCards === undefined || missingCards === undefined || allCards === undefined) {
         return (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-primary">
@@ -198,6 +213,16 @@ export const CardList: FC<CardListProps> = ({ cardTableData, archidektCredential
                     </Table>
                 </CardContent>
                 <CardFooter className="justify-end gap-2">
+                    <Tooltip open={showCopied}>
+                        <TooltipTrigger
+                            render={
+                                <Button variant="outline" onClick={handleCopySelected} disabled={selectedCards.length === 0}>
+                                    <Copy /> Copy selected as list
+                                </Button>
+                            }
+                        />
+                        <TooltipContent>Copied!</TooltipContent>
+                    </Tooltip>
                     <Button variant="outline" onClick={handleExportSelected} disabled={selectedCards.length === 0}>
                         <Download /> Export selected as CSV
                     </Button>

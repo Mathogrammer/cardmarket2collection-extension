@@ -15,7 +15,9 @@
         "build-serve-firefox": "yarpm run build-v2 && yarpm run serve:firefox",
         "build-serve-chrome": "yarpm run build-v3 && yarpm run serve:chrome",
         "publish": "cross-env MANIFEST_VERSION=2 vite build --mode production --outDir dist-v2 && cross-env MANIFEST_VERSION=3 vite build --mode production --outDir dist-v3",
-        "package": "zip -r cardmarket2archidekt.xpi ./dist"
+        "package-v2": "cd dist-v2 && bestzip cardmarket2archidekt-m2.xpi *",
+        "package-v3": "cd dist-v3 && bestzip cardmarket2archidekt-m3.xpi *",
+        "package": "yarpm run package-v2 && yarpm run package-v3"
     },
     "license": "MIT",
     "devDependencies": {
@@ -25,6 +27,7 @@
         "@types/react-dom": "19.2.4",
         "@types/webextension-polyfill": "0.12.5",
         "@vitejs/plugin-react": "6.0.5",
+        "bestzip": "^3.0.2",
         "cross-env": "10.1.0",
         "dotenv-cli": "11.0.0",
         "typescript": "7.0.2",

@@ -7,14 +7,14 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "build-v2": "cross-env MANIFEST_VERSION=2 vite build",
-        "build-v3": "cross-env MANIFEST_VERSION=3 vite build",
+        "build-v2": "cross-env MANIFEST_VERSION=2 vite build --mode development",
+        "build-v3": "cross-env MANIFEST_VERSION=3 vite build --mode development",
         "watch": "vite build --watch --mode development --minify false",
-        "dev": "vite",
         "serve:firefox": "dotenv -- web-ext run",
         "serve:chrome": "dotenv -- web-ext run -t chromium",
         "build-serve-firefox": "yarpm run build-v2 && yarpm run serve:firefox",
         "build-serve-chrome": "yarpm run build-v3 && yarpm run serve:chrome",
+        "publish": "cross-env MANIFEST_VERSION=2 vite build --mode production --outDir dist-v2 && cross-env MANIFEST_VERSION=3 vite build --mode production --outDir dist-v3",
         "package": "zip -r cardmarket2archidekt.xpi ./dist"
     },
     "license": "MIT",

@@ -40,7 +40,7 @@ action.onClicked.addListener(onActionClicked);
 browser.pageAction?.onClicked.addListener(onActionClicked);
 
 browser.runtime.onMessage.addListener(makeMessageListener((message: Message) => {
-    console.log("Received message", message);
+    console.log("Received message", message.type);
     if (message.type === IMPORT_CARDS_TO_ARCHIDEKT) {
         const { cards, archidektCredentials } = message;
         importToArchidekt(axios, browser, cards, archidektCredentials);

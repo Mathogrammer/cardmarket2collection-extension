@@ -32,7 +32,6 @@ export type AUTH_RESPONSE = {
 // Need to parametrise axios and browser to be able to keep this function in the same file as the const definitions above
 export const importToArchidekt = async (axios: AxiosStatic, browser: Browser, cards: ResultFound[], archidektCredentials: ArchidektCredentials) => {
     const { data } = await axios.post<AUTH_RESPONSE>(archidektAuthEndpoint, archidektCredentials);
-    console.log(data, "trying to set cookies");
     await browser.cookies.set({
         url: 'https://www.archidekt.com',
         name: 'tbJwt',

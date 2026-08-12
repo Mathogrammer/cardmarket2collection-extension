@@ -22,7 +22,6 @@ export type CardListProps = {
 
 const sendImportMessage = (cards: ResultFound[], archidektCredentials: ArchidektCredentials) => {
     const message: ImportCardToArchidektMessage = { type: IMPORT_CARDS_TO_ARCHIDEKT, cards, archidektCredentials };
-    console.log("Sending import message", message);
     browser.runtime.sendMessage(message);
 }
 

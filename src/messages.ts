@@ -37,7 +37,6 @@ export type ImportCardToArchidektMessage = Message & {
 
 export const MESSAGE_GET_CARDS = "GET_CARDS";
 export const MESSAGE_QUERY_CARDS = "QUERY_CARDS";
-export const ROUNDABOUT_MESSAGE = "ROUNDABOUT_MESSAGE";
 export const RESULT_PAGE_READY = "RESULT_PAGE_READY";
 export const IMPORT_CARDS_TO_ARCHIDEKT = "IMPORT_CARDS_TO_ARCHIDEKT";
 export const IMPORT_SUCCESS = "IMPORT_SUCCESS";

@@ -34,7 +34,6 @@ const action = {
         32: "icons/32.png",
         38: "icons/38.png",
     },
-    default_popup: "src/entries/popup/index.html",
     default_title: "Archidekt Import"
 };
 

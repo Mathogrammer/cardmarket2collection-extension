@@ -23,7 +23,7 @@ function buildSharedManifest(includeFileMatcher: boolean): Partial<Manifest.WebE
             256: "icons/256.png",
             512: "icons/512.png",
         },
-        permissions: ["activeTab", "cookies", archidektMatcher],
+        permissions: ["activeTab", "cookies", archidektMatcher, cardmarketMatcher],
     };
 }
 
@@ -74,7 +74,7 @@ function buildManifestV3(includeFileMatcher: boolean): Partial<chrome.runtime.Ma
             service_worker: "src/entries/background/serviceWorker.ts",
             type: "module",
         },
-        host_permissions: [archidektMatcher],
+        host_permissions: [archidektMatcher, cardmarketMatcher],
         permissions: [...sharedManifest.permissions ?? [], "declarativeContent"] as chrome.runtime.ManifestPermission[],
     };
 }

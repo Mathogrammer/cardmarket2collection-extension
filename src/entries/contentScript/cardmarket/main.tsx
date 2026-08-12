@@ -22,25 +22,66 @@ browser.runtime.onMessage.addListener((data: unknown) => {
 
 console.log("Content script loaded");
 
-// Fetched from within the content script (rather than the result page) so the request is
-// same-origin to cardmarket.com and isn't rejected by the image host's CORS policy.
-const fetchImageAsDataUrl = async (url: string): Promise<string | undefined> => {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Unexpected status ${response.status}`);
+// Cardmarket's image host is behind Cloudflare bot management, which blocks script-initiated
+// fetch() requests (different Sec-Fetch-Dest/fingerprint than a real image load) even with the
+// right cookies attached. So instead of fetch(), we load the image the same way the page itself
+// does — via a real <img> element — and read the pixels back out through a canvas.
+const loadImageViaCanvas = (url: string): Promise<string | undefined> => {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+
+        img.onload = () => {
+            try {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const context = canvas.getContext("2d");
+                if (!context) {
+                    throw new Error("Could not get 2d canvas context");
+                }
+                context.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL("image/jpeg"));
+            } catch (error) {
+                console.warn("Failed to extract Cardmarket image via canvas", url, error);
+                resolve(undefined);
+            }
+        };
+
+        img.onerror = () => {
+            console.warn("Failed to load Cardmarket image", url);
+            resolve(undefined);
+        };
+
+        img.src = url;
+    });
+}
+
+// Cap concurrency and stagger requests so we don't fetch every card image in
+// an order at once — keeps our traffic pattern close to a human hovering
+// row by row instead of a burst of simultaneous requests.
+const IMAGE_LOAD_CONCURRENCY = 4;
+const IMAGE_LOAD_STAGGER_MS = 75;
+
+const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+const loadCardImages = async (cards: CardTableData[]): Promise<void> => {
+    let nextIndex = 0;
+
+    const worker = async () => {
+        while (nextIndex < cards.length) {
+            const card = cards[nextIndex++];
+            if (card.imageUrl) {
+                card.imageUrl = await loadImageViaCanvas(card.imageUrl);
+            }
+            if (nextIndex < cards.length) {
+                await delay(IMAGE_LOAD_STAGGER_MS);
+            }
         }
-        const blob = await response.blob();
-        return await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(blob);
-        });
-    } catch (error) {
-        console.warn("Failed to fetch Cardmarket image", url, error);
-        return undefined;
-    }
+    };
+
+    const workerCount = Math.min(IMAGE_LOAD_CONCURRENCY, cards.length);
+    await Promise.all(Array.from({ length: workerCount }, worker));
 }
 
 const getCardTableData = async (): Promise<GetCardsResponse> => {
@@ -54,11 +95,7 @@ const getCardTableData = async (): Promise<GetCardsResponse> => {
         result.response.push(...cards);
     }
 
-    await Promise.all(result.response.map(async (card) => {
-        if (card.imageUrl) {
-            card.imageUrl = await fetchImageAsDataUrl(card.imageUrl);
-        }
-    }));
+    await loadCardImages(result.response);
 
     console.log("Returning result");
 
